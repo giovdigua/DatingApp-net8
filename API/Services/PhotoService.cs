@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using API.Helpers;
 using API.Interfaces;
 using CloudinaryDotNet;
