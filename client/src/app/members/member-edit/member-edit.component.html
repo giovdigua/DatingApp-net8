@@ -5,12 +5,12 @@
   </div>
   <div class="col-8">
     @if (editForm.dirty) {
-      <div class="alert alert-info pb-0">
-        <p>
-          <strong>Information: </strong>
-          You have made changes. Any unsaved changes will be lost
-        </p>
-      </div>
+    <div class="alert alert-info pb-0">
+      <p>
+        <strong>Information: </strong>
+        You have made changes. Any unsaved changes will be lost
+      </p>
+    </div>
     }
   </div>
   <div class="col-4">
@@ -51,7 +51,11 @@
   <div class="col-8">
     <tabset class="member-tabset">
       <tab heading="About {{ member.knownAs }}">
-        <form id="editForm" #editForm="ngForm" (ngSubmit)="updateMember()">
+        <form
+          id="editForm"
+          #editForm="ngForm"
+          (ngSubmit)="updateMember()"
+        >
           <h4 class="mt-2">Description</h4>
           <textarea
             class="form-control"
@@ -96,7 +100,9 @@
           </div>
         </form>
       </tab>
-      <tab heading="Edit photos"> Photo edit form will go here </tab>
+      <tab heading="Edit photos">
+        <app-photo-editor [member]="member"></app-photo-editor>
+      </tab>
     </tabset>
   </div>
 </div>
