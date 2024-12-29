@@ -17,7 +17,6 @@ public class UsersController(IUserRepository userRepository, IMapper mapper,
     public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
     {
         var users = await userRepository.GetMembersAsync();
-       
         return Ok(users);
     }
 
