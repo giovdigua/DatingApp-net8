@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable, Signal, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Member } from '../_models/member';
@@ -8,7 +8,7 @@ import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MembersService {
   private http = inject(HttpClient);
@@ -17,57 +17,69 @@ export class MembersService {
   memberCache = new Map();
 
   getMembers(userParams: UserParams) {
-    const response = this.memberCache.get(Object.values(userParams).join('-')); 
-    if(response) return this.setPaginatedResponse(response);
-    let params = this.setPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+    const response = this.memberCache.get(Object.values(userParams).join('-'));
+    if (response) return this.setPaginatedResponse(response);
+    let params = this.setPaginationHeaders(
+      userParams.pageNumber,
+      userParams.pageSize
+    );
 
     params = params.append('minAge', userParams.minAge);
     params = params.append('maxAge', userParams.maxAge);
-    params = params.append('gender',userParams.gender);
-    params = params.append('orderBy',userParams.orderBy);
-   
-    return this.http.get<Member[]>(this.baseUrl + 'users',{observe: 'response', params}).subscribe({
-      next : response => {
-        this.setPaginatedResponse(response);
-        this.memberCache.set(Object.values(userParams).join('-'), response);
-      }    
-    });
+    params = params.append('gender', userParams.gender);
+    params = params.append('orderBy', userParams.orderBy);
+
+    return this.http
+      .get<Member[]>(this.baseUrl + 'users', { observe: 'response', params })
+      .subscribe({
+        next: (response) => {
+          this.setPaginatedResponse(response);
+          this.memberCache.set(Object.values(userParams).join('-'), response);
+        },
+      });
   }
 
   private setPaginatedResponse(response: HttpResponse<Member[]>) {
     this.paginatedResult.set({
       items: response.body as Member[],
-      pagination: JSON.parse(response.headers.get('Pagination')!)
-    })
+      pagination: JSON.parse(response.headers.get('Pagination')!),
+    });
   }
 
   private setPaginationHeaders(pageNumber: number, pageSize: number) {
     let params = new HttpParams();
-    if(pageNumber && pageSize){
+    if (pageNumber && pageSize) {
       params = params.append('pageNumber', pageNumber);
       params = params.append('pageSize', pageSize);
     }
     return params;
   }
-  
-  getMember(username: string) {
-    /* const member = this.members().find(x => x.userName === username);
-    if(member !== undefined) return of(member); */
 
-    return this.http.get<Member>(this.baseUrl + 'users/'+ username);
+  getMember(username: string) {
+    const member: Member = [...this.memberCache.values()]
+      .reduce((arr, elem) => arr.concat(elem.body), [])
+      .find((m: Member) => m.userName === username);
+
+    if (member) return of(member);
+
+    return this.http.get<Member>(this.baseUrl + 'users/' + username);
   }
 
   updateMember(member: Member) {
-    return this.http.put(this.baseUrl + 'users', member).pipe(
+    return this.http
+      .put(this.baseUrl + 'users', member)
+      .pipe
       /* tap(() => {
         this.members.update(members => members.map(m => m.userName === member.userName
            ? member : m)); 
       }) */
-    )
+      ();
   }
 
   setMainPhoto(photo: Photo) {
-    return this.http.put(this.baseUrl + 'users/set-main-photo/' + photo.id, {}).pipe(
+    return this.http
+      .put(this.baseUrl + 'users/set-main-photo/' + photo.id, {})
+      .pipe
       /* tap (() => {
         this.members.update(members => members.map(m => {
           if(m.photos.includes(photo)){
@@ -76,11 +88,13 @@ export class MembersService {
           return m;
         }))
       }) */
-    );
+      ();
   }
 
   deletePhoto(photo: Photo) {
-    return this.http.delete(this.baseUrl + 'users/delete-photo/' + photo.id).pipe(
+    return this.http
+      .delete(this.baseUrl + 'users/delete-photo/' + photo.id)
+      .pipe
       /* tap(() => {
         this.members.update(members => members.map(m => {
           if(m.photos.includes(photo)){
@@ -89,6 +103,6 @@ export class MembersService {
           return m;
         }))
       }) */
-    )
+      ();
   }
 }
