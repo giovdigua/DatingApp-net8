@@ -15,7 +15,6 @@ import { MembersService } from '../_services/members.service';
 })
 export class NavComponent {
   accountService = inject(AccountService);
-  private membersService = inject(MembersService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
   model: any = {};
@@ -31,7 +30,6 @@ export class NavComponent {
 
   logout() {
     this.accountService.logout();
-    this.membersService.paginatedResult.set(null);
     this.router.navigateByUrl('/'); 
   }
 }
