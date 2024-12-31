@@ -14,4 +14,16 @@ export class MemberCardComponent {
   private likeService = inject(LikesService);
   member = input.required<Member>();
   hasLiked = computed(() => this.likeService.likedIds().includes(this.member().id));  
+
+  toggleLike() {
+    this.likeService.toggleLike(this.member().id).subscribe({
+      next: () => {
+        if (this.hasLiked()){
+          this.likeService.likedIds.update(ids => ids.filter(x => x !== this.member().id));
+        } else {
+          this.likeService.likedIds.update(ids => [...ids, this.member().id]);
+        }
+      }
+    });
+  } 
 }
