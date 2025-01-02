@@ -46,7 +46,10 @@
     </thead>
     <tbody class="align-middle">
         @for (message of messageService.paginatedResult()?.items; track message.id) {
-        <tr routerLink="{{getRoute(message)}}" [queryParams]="{tab: 'Messages'}">
+        <tr
+            routerLink="{{getRoute(message)}}"
+            [queryParams]="{tab: 'Messages'}"
+        >
             <td>{{message.content}}</td>
             <td>
                 <div>
@@ -62,8 +65,11 @@
                 </div>
             </td>
             <td>{{message.messageSent | timeago}}</td>
-            <td>
-                <button class="btn btn-danger">
+            <td (click)="$event.stopPropagation()">
+                <button
+                    (click)="deleteMessage(message.id)"
+                    class="btn btn-danger"
+                >
                     Delete
                 </button>
             </td>
