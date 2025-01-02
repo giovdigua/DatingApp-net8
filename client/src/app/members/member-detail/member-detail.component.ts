@@ -6,21 +6,27 @@ import { TabDirective, TabsetComponent, TabsModule } from 'ngx-bootstrap/tabs';
 import { GalleryItem, GalleryModule, ImageItem } from 'ng-gallery';
 import { TimeagoModule } from 'ngx-timeago';
 import { DatePipe } from '@angular/common';
-import { MemberMessagesComponent } from "../member-messages/member-messages.component";
+import { MemberMessagesComponent } from '../member-messages/member-messages.component';
 import { Message } from '../../_models/message';
 import { MessageService } from '../../_services/message.service';
 
 @Component({
   selector: 'app-member-detail',
   standalone: true,
-  imports: [TabsModule, GalleryModule, TimeagoModule, DatePipe, MemberMessagesComponent],
+  imports: [
+    TabsModule,
+    GalleryModule,
+    TimeagoModule,
+    DatePipe,
+    MemberMessagesComponent,
+  ],
   templateUrl: './member-detail.component.html',
   styleUrl: './member-detail.component.css',
 })
 export class MemberDetailComponent implements OnInit {
   @ViewChild('memberTabs') memberTabs?: TabsetComponent;
   private memberService = inject(MembersService);
-  private messageService = inject(MessageService)
+  private messageService = inject(MessageService);
   private route = inject(ActivatedRoute);
   member?: Member;
   images: GalleryItem[] = [];
@@ -29,13 +35,32 @@ export class MemberDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMember();
+
+    this.route.queryParams.subscribe({
+      next: (params) => {
+        params['tab'] && this.selectTab(params['tab']);
+      },
+    });
+  }
+
+  selectTab(heading: string) {
+    if (this.memberTabs) {
+      const messageTab = this.memberTabs.tabs.find(
+        (t) => t.heading === heading
+      );
+      if (messageTab) messageTab.active = true;
+    }
   }
 
   onTabActivated(data: TabDirective): void {
     this.activeTab = data;
-    if (this.activeTab.heading === 'Messages' && this.messages.length === 0 && this.member) {
+    if (
+      this.activeTab.heading === 'Messages' &&
+      this.messages.length === 0 &&
+      this.member
+    ) {
       this.messageService.getMessageThread(this.member?.userName).subscribe({
-        next: messages => this.messages = messages
+        next: (messages) => (this.messages = messages),
       });
     }
   }
@@ -48,10 +73,10 @@ export class MemberDetailComponent implements OnInit {
     this.memberService.getMember(username).subscribe({
       next: (member) => {
         this.member = member;
-        member.photos.map(p => {
+        member.photos.map((p) => {
           this.images.push(new ImageItem({ src: p.url, thumb: p.url }));
         });
-      }
+      },
     });
   }
 }
