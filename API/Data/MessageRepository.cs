@@ -34,9 +34,12 @@ public class MessageRepository(DataContext context, IMapper mapper) : IMessageRe
 
         query = messageParams.Container switch
         {
-            "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username),
-            "Outbox" => query.Where(u => u.SenderUsername == messageParams.Username),
-            _ => query.Where(u => u.RecipientUsername == messageParams.Username && u.DateRead == null)
+            "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username
+                && u.RecipientDeleted == false),
+            "Outbox" => query.Where(u => u.SenderUsername == messageParams.Username &&
+                u.SenderDeleted == false),
+            _ => query.Where(u => u.RecipientUsername == messageParams.Username && u.DateRead == null &&
+                u.RecipientDeleted == false)
         };
 
         var messages = query.ProjectTo<MessageDto>(mapper.ConfigurationProvider);
@@ -51,8 +54,13 @@ public class MessageRepository(DataContext context, IMapper mapper) : IMessageRe
          .Include(x => x.Sender).ThenInclude(x => x.Photos)
             .Include(x => x.Recipient).ThenInclude(x => x.Photos)
             .Where(x =>
-            x.Recipient.UserName == currentUsername && x.SenderUsername == recipientUsername ||
-            x.Sender.UserName == currentUsername && x.RecipientUsername == recipientUsername)
+                x.Recipient.UserName == currentUsername
+                    && x.RecipientDeleted == false
+                    && x.SenderUsername == recipientUsername ||
+                x.Sender.UserName == currentUsername
+                    && x.SenderDeleted == false
+                    && x.RecipientUsername == recipientUsername
+            )
             .OrderBy(x => x.MessageSent)
             .ToListAsync();
 
