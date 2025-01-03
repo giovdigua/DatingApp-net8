@@ -29,7 +29,7 @@ export class UserManagementComponent implements OnInit {
         title: 'User Roles',
         list: ['Admin', 'Moderator', 'Member'],
       }
-    };
+    }
     this.bsModalRef = this.modalService.show(RolesModalComponent, initialState);
   }
 
