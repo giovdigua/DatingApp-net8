@@ -8,20 +8,19 @@ import { FormsModule, NgForm } from '@angular/forms';
   standalone: true,
   imports: [TimeagoModule, FormsModule],
   templateUrl: './member-messages.component.html',
-  styleUrl: './member-messages.component.css'
+  styleUrl: './member-messages.component.css',
 })
-export class MemberMessagesComponent{
+export class MemberMessagesComponent {
   @ViewChild('messageForm') messageForm?: NgForm;
   messageService = inject(MessageService);
   username = input.required<string>();
-  messageContent = ''; 
+  messageContent = '';
 
   sendMessage() {
-    this.messageService.sendMessage(this.username(), this.messageContent)
-      .subscribe({
-        next: message => {
-          this.messageForm?.reset();
-        }
+    this.messageService
+      .sendMessage(this.username(), this.messageContent)
+      .then(() => {
+        this.messageForm?.reset();
       });
-    }
+  }
 }
