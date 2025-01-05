@@ -1,13 +1,11 @@
-using System;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Data;
 
-public class PhotoRepository(DataContext context, IMapper mapper) : IPhotoRepository
+public class PhotoRepository(DataContext context) : IPhotoRepository
 {
     public async Task<Photo?> GetPhotoById(int id)
     {

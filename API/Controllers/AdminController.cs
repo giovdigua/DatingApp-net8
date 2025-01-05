@@ -1,4 +1,5 @@
 using API.Entities;
+using API.Extensions;
 using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -28,7 +29,7 @@ IPhotoService photoService) : BaseApiController
     [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("edit-roles/{username}")]
     public async Task<ActionResult> EditRoles(string username, [FromQuery] string roles)
-    {   
+    {
         if (string.IsNullOrEmpty(roles)) return BadRequest("you must select at lest one role");
 
         var selectedRoles = roles.Split(",").ToArray();
@@ -49,12 +50,12 @@ IPhotoService photoService) : BaseApiController
 
         return Ok(await userManager.GetRolesAsync(user));
     }
-        
+
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
-    public ActionResult GetPhotosForModeration()
+    public async Task<ActionResult> GetPhotosForModeration()
     {
-        var photos = unitOfWork.PhotoRepository.GetUnapprovedPhotos();
+        var photos = await unitOfWork.PhotoRepository.GetUnapprovedPhotos();
         return Ok(photos);
     }
 
@@ -68,14 +69,13 @@ IPhotoService photoService) : BaseApiController
 
         photo.IsApproved = true;
 
-        var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(photo.AppUser.UserName!);
+        var user = await unitOfWork.UserRepository.GetUserByPhotoId(photoId);
 
         if (user == null) return BadRequest("Could not get user from db");
 
         if (!user.Photos.Any(x => x.IsMain)) photo.IsMain = true;
-        
-        await unitOfWork.Complete();
 
+        await unitOfWork.Complete();
         return Ok();
     }
 
@@ -83,26 +83,23 @@ IPhotoService photoService) : BaseApiController
     [HttpPost("reject-photo/{photoId}")]
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
+        var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
+
+        if (user == null) return BadRequest("User not found");
+
         var photo = await unitOfWork.PhotoRepository.GetPhotoById(photoId);
 
-        if (photo == null) return BadRequest("Could not get photo from db");
+        if (photo == null || photo.IsMain) return BadRequest("This photo cannot be deleted");
 
-       if (photo.PublicId != null)
-       {
+        if (photo.PublicId != null)
+        {
             var result = await photoService.DeletePhotoAsync(photo.PublicId);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+        }
 
-            if (result.Result == "ok")
-            {
-                unitOfWork.PhotoRepository.RemovePhoto(photo);
-            }
-       }
-       else
-       {
-                unitOfWork.PhotoRepository.RemovePhoto(photo);
-       }
+        user.Photos.Remove(photo);
+        if (await unitOfWork.Complete()) return Ok();
 
-       await unitOfWork.Complete();
-
-       return Ok();
+        return BadRequest("Problem deleting photo");
     }
 }
